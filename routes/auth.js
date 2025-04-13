@@ -22,6 +22,7 @@ router.post(
   async (req, res) => {
     //if there are errors sent bad request and errors
 
+    let success = false;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -32,9 +33,10 @@ router.post(
     try {
       let user = await User.findOne({ email: req.body.email });
       if (user) {
+        success = false;
         return res
           .status(400)
-          .json({ error: "this email-id is already taken" });
+          .json({ success, error: "this email-id is already taken" });
       }
 
       //creating a secured password for the user
@@ -56,10 +58,11 @@ router.post(
         },
       };
       const authToken = jwt.sign(data, JWT_SECRET);
-      res.json({ authToken });
+      success = true;
+      res.json({ success, authToken });
     } catch (error) {
       console.error(error);
-      res.status(500).send("Enternal server Error");
+      res.status(500).send("Internal server Error");
     }
   }
 );
@@ -73,6 +76,7 @@ router.post(
   async (req, res) => {
     //if there are errors sent bad request and errors
 
+    let success = false;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -84,15 +88,17 @@ router.post(
     try {
       let user = await User.findOne({ email });
       if (!user) {
+        success=false
         return res
           .status(400)
-          .json({ error: "try to login with currect credantials" });
+          .json({ success,error: "try to login with currect credantials" });
       }
       const passwordCompare = await bcrypt.compare(password, user.password);
       if (!passwordCompare) {
+        success = false;
         return res
           .status(400)
-          .json({ error: "try to login with currect credantials" });
+          .json({ success, error: "try to login with currect credantials" });
       }
 
       //sending data after verfing email and password
@@ -103,10 +109,11 @@ router.post(
         },
       };
       const authToken = jwt.sign(data, JWT_SECRET);
-      res.json({ authToken });
+      success = true;
+      res.json({ success, authToken });
     } catch (error) {
       console.error(error);
-      res.status(500).send("Enternal server Error");
+      res.status(500).send("Internal server Error");
     }
   }
 );
@@ -120,7 +127,7 @@ router.post("/getuser", fetchUser, async (req, res) => {
     res.send(user);
   } catch (error) {
     console.error(error);
-    res.status(500).send("Enternal server Error");
+    res.status(500).send("Internal server Error");
   }
 });
 module.exports = router;
